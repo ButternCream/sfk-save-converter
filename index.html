@@ -6,7 +6,7 @@
 <title>SFK Save Converter — Xbox → PC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,11 +17,9 @@
     --sepia-light: #b08a50;
     --sepia-pale: #e8d9b8;
     --human: #4a7c59;
-    --human-light: #6aad80;
     --undead: #7c3d6b;
-    --undead-light: #b05a9a;
     --red: #8b2020;
-    --shadow: rgba(26,18,8,0.18);
+    --green: #2d5e3a;
   }
 
   html, body {
@@ -39,200 +37,82 @@
     padding: 40px 16px 80px;
   }
 
-  .page {
-    width: 100%;
-    max-width: 750px;
-  }
+  .page { width: 100%; max-width: 720px; }
 
   /* ── Header ── */
-  .crest {
-    text-align: center;
-    margin-bottom: 36px;
-    animation: fadeDown 0.6s ease both;
-  }
-
-  .crest-icon {
-    font-size: 52px;
-    line-height: 1;
-    display: block;
-    margin-bottom: 12px;
-    filter: drop-shadow(0 4px 16px rgba(176,138,80,0.5));
-  }
-
-  h1 {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(1.4rem, 4vw, 2rem);
-    font-weight: 700;
-    color: var(--sepia-light);
-    letter-spacing: 0.05em;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-    line-height: 1.2;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-    color: #c8b88a;
-    margin-top: 6px;
-    font-style: italic;
-    font-weight: 300;
-  }
+  .crest { text-align: center; margin-bottom: 36px; animation: fadeDown 0.6s ease both; }
+  .crest-icon { font-size: 52px; line-height: 1; display: block; margin-bottom: 12px; filter: drop-shadow(0 4px 16px rgba(176,138,80,0.5)); }
+  h1 { font-family: 'Cinzel', serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 700; color: var(--sepia-light); letter-spacing: 0.05em; text-shadow: 0 2px 8px rgba(0,0,0,0.6); line-height: 1.2; }
+  .subtitle { font-size: 1rem; color: #c8b88a; margin-top: 6px; font-style: italic; font-weight: 300; }
 
   /* ── Card ── */
   .card {
     background: var(--parchment);
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    border-radius: 4px;
-    border: 1px solid var(--sepia-light);
-    box-shadow:
-      0 0 0 4px rgba(176,138,80,0.12),
-      0 12px 48px rgba(0,0,0,0.5),
-      inset 0 1px 0 rgba(255,255,255,0.4);
-    overflow: hidden;
-    animation: fadeUp 0.7s ease 0.1s both;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    border-radius: 4px; border: 1px solid var(--sepia-light);
+    box-shadow: 0 0 0 4px rgba(176,138,80,0.12), 0 12px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+    overflow: hidden; animation: fadeUp 0.7s ease 0.1s both; margin-bottom: 20px;
   }
-
   .card-header {
     background: linear-gradient(135deg, #2a1f0e 0%, #3d2b10 100%);
-    border-bottom: 2px solid var(--sepia);
-    padding: 18px 28px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    border-bottom: 2px solid var(--sepia); padding: 18px 28px;
+    display: flex; align-items: center; gap: 12px;
   }
-
   .card-header-icon { font-size: 20px; }
-
-  .card-header h2 {
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    color: var(--sepia-light);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-  }
-
+  .card-header h2 { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--sepia-light); letter-spacing: 0.15em; text-transform: uppercase; }
   .card-body { padding: 28px; }
 
   /* ── Drop Zone ── */
   .drop-zone {
-    border: 2px dashed var(--sepia-light);
-    border-radius: 3px;
-    padding: 40px 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: rgba(122,92,46,0.06);
-    position: relative;
+    border: 2px dashed var(--sepia-light); border-radius: 3px;
+    padding: 40px 24px; text-align: center; cursor: pointer;
+    transition: all 0.2s ease; background: rgba(122,92,46,0.06); position: relative;
   }
-
-  .drop-zone:hover, .drop-zone.dragover {
-    border-color: var(--sepia);
-    background: rgba(122,92,46,0.12);
-  }
-
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--sepia); background: rgba(122,92,46,0.12); }
   .drop-zone.dragover { transform: scale(1.01); }
-
-  .drop-zone input[type=file] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-
+  .drop-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .drop-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+  .drop-zone h3 { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--sepia); margin-bottom: 6px; }
+  .drop-zone p { font-size: 0.9rem; color: #6b5030; line-height: 1.5; }
+  .drop-zone p em { font-style: normal; background: rgba(122,92,46,0.12); padding: 1px 6px; border-radius: 3px; font-family: 'Courier New', monospace; font-size: 0.82em; }
 
-  .drop-zone h3 {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    color: var(--sepia);
-    margin-bottom: 6px;
-  }
+  /* ── Status ── */
+  .status-box { margin-top: 20px; padding: 14px 16px; border-radius: 3px; font-size: 0.9rem; line-height: 1.6; display: none; white-space: pre-line; }
+  .status-box.error   { background: rgba(139,32,32,0.1);   border: 1px solid var(--red);         color: var(--red); }
+  .status-box.success { background: rgba(74,124,89,0.1);   border: 1px solid var(--human);       color: var(--green); }
+  .status-box.warning { background: rgba(176,138,80,0.12); border: 1px solid var(--sepia-light); color: #5a3e10; }
 
-  .drop-zone p {
-    font-size: 0.9rem;
-    color: #6b5030;
-    line-height: 1.5;
-  }
+  /* ── Profile Groups ── */
+  #profiles-section { display: none; margin-top: 28px; }
+  .profiles-title { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--sepia); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; }
 
-  .drop-zone p em {
-    font-style: normal;
-    background: rgba(122,92,46,0.12);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.82em;
+  .profile-group { border: 1px solid rgba(122,92,46,0.35); border-radius: 3px; margin-bottom: 14px; overflow: hidden; }
+  .profile-group-header {
+    background: linear-gradient(90deg, rgba(122,92,46,0.12) 0%, rgba(122,92,46,0.04) 100%);
+    border-bottom: 1px solid rgba(122,92,46,0.25);
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   }
+  .profile-group-title { font-family: 'Cinzel', serif; font-size: 0.88rem; color: var(--sepia); flex: 1; }
+  .profile-stats { font-size: 0.8rem; color: #7a5c2e; font-style: italic; }
 
-  /* ── Divider ── */
-  .divider {
-    display: flex; align-items: center; gap: 12px;
-    margin: 24px 0; color: var(--sepia-light); font-size: 0.8rem;
-    font-family: 'Cinzel', serif; letter-spacing: 0.1em;
-  }
-  .divider::before, .divider::after {
-    content: ''; flex: 1; height: 1px; background: var(--sepia-light); opacity: 0.4;
-  }
+  .profile-slot-row { padding: 10px 16px; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.3); border-bottom: 1px solid rgba(122,92,46,0.15); flex-wrap: wrap; }
+  .profile-slot-row label { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--sepia); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+  .profile-slot-row select { background: var(--sepia-pale); border: 1px solid var(--sepia-light); border-radius: 3px; padding: 5px 10px; font-family: 'Cinzel', serif; font-size: 0.82rem; color: var(--sepia); cursor: pointer; outline: none; }
+  .profile-slot-row select:focus { border-color: var(--sepia); box-shadow: 0 0 0 2px rgba(122,92,46,0.2); }
+  .slot-conflict { font-size: 0.78rem; color: var(--red); display: none; }
 
-  /* ── Profile Selector ── */
-  .profile-row {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
-  }
-  .profile-row label {
-    font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--sepia);
-    letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
-  }
-  .profile-row select {
-    background: var(--sepia-pale); border: 1px solid var(--sepia-light);
-    border-radius: 3px; padding: 6px 10px; font-family: 'Cinzel', serif;
-    font-size: 0.85rem; color: var(--sepia); cursor: pointer; flex: 1;
-    outline: none;
-  }
-  .profile-row select:focus { border-color: var(--sepia); box-shadow: 0 0 0 2px rgba(122,92,46,0.2); }
-
-  /* ── File List ── */
-  #file-list { margin-top: 24px; display: none; }
-
-  .file-list-title {
-    font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--sepia);
-    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px;
-  }
-
-  .file-items { display: flex; flex-direction: column; gap: 6px; }
-
-  .file-item {
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(122,92,46,0.08); border: 1px solid rgba(122,92,46,0.2);
-    border-radius: 3px; padding: 8px 12px;
-    font-size: 0.88rem; color: var(--sepia);
-  }
-
-  .file-item .fi-name { flex: 1; font-family: monospace; font-size: 0.82em; }
-
-  .fi-badge {
-    font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 700;
-    padding: 2px 8px; border-radius: 2px; text-transform: uppercase;
-    letter-spacing: 0.08em; white-space: nowrap;
-  }
-  .fi-badge.human    { background: rgba(74,124,89,0.15); color: var(--human); border: 1px solid var(--human); }
-  .fi-badge.undead   { background: rgba(124,61,107,0.15); color: var(--undead); border: 1px solid var(--undead); }
-  .fi-badge.profile  { background: rgba(122,92,46,0.15); color: var(--sepia); border: 1px solid var(--sepia-light); }
-  .fi-badge.unknown  { background: rgba(139,32,32,0.1); color: var(--red); border: 1px solid var(--red); }
-
-  /* ── Status / Error ── */
-  .status-box {
-    margin-top: 20px; padding: 14px 16px; border-radius: 3px;
-    font-size: 0.9rem; line-height: 1.5; display: none;
-  }
-  .status-box.error {
-    background: rgba(139,32,32,0.1); border: 1px solid var(--red); color: var(--red);
-  }
-  .status-box.success {
-    background: rgba(74,124,89,0.1); border: 1px solid var(--human); color: #2d5e3a;
-  }
-  .status-box.warning {
-    background: rgba(176,138,80,0.12); border: 1px solid var(--sepia-light); color: #5a3e10;
-  }
+  .profile-files { padding: 10px 16px 14px; display: flex; flex-direction: column; gap: 5px; }
+  .file-item { display: flex; align-items: center; gap: 10px; background: rgba(122,92,46,0.06); border: 1px solid rgba(122,92,46,0.15); border-radius: 3px; padding: 7px 10px; }
+  .fi-name { flex: 1; font-family: monospace; font-size: 0.78em; color: #5a3e10; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fi-badge { font-family: 'Cinzel', serif; font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+  .fi-badge.human   { background: rgba(74,124,89,0.15);  color: var(--human);  border: 1px solid var(--human); }
+  .fi-badge.undead  { background: rgba(124,61,107,0.15); color: var(--undead); border: 1px solid var(--undead); }
+  .fi-badge.profile { background: rgba(122,92,46,0.15);  color: var(--sepia);  border: 1px solid var(--sepia-light); }
+  .fi-missing { font-style: italic; color: var(--red); font-size: 0.82rem; padding: 3px 0; }
 
   /* ── Convert Button ── */
   #convert-btn {
-    display: none; width: 100%; margin-top: 24px;
+    display: none; width: 100%; margin-top: 8px;
     background: linear-gradient(135deg, #2a1f0e 0%, #4a3218 100%);
     color: var(--sepia-light); border: 1px solid var(--sepia);
     font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 700;
@@ -241,53 +121,28 @@
     transition: all 0.2s ease;
     box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
   }
-  #convert-btn:hover {
-    background: linear-gradient(135deg, #3d2b10 0%, #5a3e18 100%);
-    color: #e8c870; border-color: var(--sepia-light);
-    box-shadow: 0 6px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-    transform: translateY(-1px);
-  }
-  #convert-btn:active { transform: translateY(0); }
+  #convert-btn:hover:not(:disabled) { background: linear-gradient(135deg, #3d2b10 0%, #5a3e18 100%); color: #e8c870; border-color: var(--sepia-light); transform: translateY(-1px); }
+  #convert-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #convert-btn:active:not(:disabled) { transform: translateY(0); }
 
   /* ── How It Works ── */
-  .how-it-works {
-    margin-top: 32px; border-top: 1px solid rgba(176,138,80,0.3); padding-top: 24px;
-  }
-  .how-title {
-    font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--sepia-light);
-    letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px;
-  }
+  .how-it-works { margin-top: 32px; border-top: 1px solid rgba(176,138,80,0.3); padding-top: 24px; }
+  .how-title { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--sepia-light); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px; }
   .steps { display: flex; flex-direction: column; gap: 10px; }
   .step { display: flex; gap: 12px; align-items: flex-start; }
-  .step-num {
-    font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 700;
-    color: var(--sepia-light); background: rgba(122,92,46,0.15);
-    border: 1px solid rgba(122,92,46,0.3); border-radius: 50%;
-    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; margin-top: 1px;
-  }
+  .step-num { font-family: 'Cinzel', serif; font-size: 0.75rem; font-weight: 700; color: var(--sepia-light); background: rgba(122,92,46,0.15); border: 1px solid rgba(122,92,46,0.3); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
   .step p { font-size: 0.88rem; color: #5a3e10; line-height: 1.5; }
-  .step p em {
-    font-style: normal; font-family: monospace; font-size: 0.85em;
-    background: rgba(122,92,46,0.1); padding: 1px 5px; border-radius: 2px;
-  }
+  .step p em { font-style: normal; font-family: monospace; font-size: 0.85em; background: rgba(122,92,46,0.1); padding: 1px 5px; border-radius: 2px; }
   .step strong { color: var(--sepia); }
 
-  /* ── Footer ── */
-  .footer {
-    text-align: center; margin-top: 28px; font-size: 0.8rem;
-    color: #7a6040; font-style: italic;
-    animation: fadeUp 0.7s ease 0.3s both;
-  }
+  .footer { text-align: center; margin-top: 28px; font-size: 0.8rem; color: #7a6040; font-style: italic; animation: fadeUp 0.7s ease 0.3s both; }
 
-  /* ── Animations ── */
   @keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
   @keyframes fadeDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:none; } }
 </style>
 </head>
 <body>
 <div class="page">
-
   <div class="crest">
     <span class="crest-icon">⚔️</span>
     <h1>Super Fantasy Kingdom</h1>
@@ -299,34 +154,24 @@
       <span class="card-header-icon">📜</span>
       <h2>Convert Your Save Files</h2>
     </div>
-
     <div class="card-body">
 
-      <div class="profile-row">
-        <label for="profile-select">Profile Slot</label>
-        <select id="profile-select">
-          <option value="1">Profile 1</option>
-          <option value="2">Profile 2</option>
-          <option value="3">Profile 3</option>
-        </select>
-      </div>
-
       <div class="drop-zone" id="drop-zone">
-        <input type="file" id="file-input" multiple accept="">
+        <input type="file" id="file-input" multiple>
         <span class="drop-icon">🗂️</span>
         <h3>Drop Xbox save files here</h3>
-        <p>Drag & drop all the files from your Xbox save folder<br>
-        (those long hex-named files like <em>3AAE4E034CDC43D4AE2C4DEF8DA7BF80</em>)</p>
+        <p>Drop all files from your Xbox save folder(s) at once — multiple profiles supported.<br>
+        Files have hex names like <em>3AAE4E034CDC43D4AE2C4DEF8DA7BF80</em> with no extension.</p>
       </div>
 
       <div id="status-box" class="status-box"></div>
 
-      <div id="file-list">
-        <div class="file-list-title">Identified Files</div>
-        <div class="file-items" id="file-items"></div>
+      <div id="profiles-section">
+        <div class="profiles-title">Detected Profiles</div>
+        <div id="profile-groups"></div>
       </div>
 
-      <button id="convert-btn">⚔️ &nbsp; Convert &amp; Download ZIP</button>
+      <button id="convert-btn">⚔️ &nbsp; Convert &amp; Download Files</button>
 
       <div class="how-it-works">
         <div class="how-title">How to use</div>
@@ -334,21 +179,18 @@
           <div class="step">
             <div class="step-num">1</div>
             <p>Find your Xbox saves at<br>
-            <em>C:\Users\YOU\AppData\Local\Packages\HoodedHorse.SuperFantasyKingdom_...\SystemAppData\wgs\...\...</em></p>
+            <em>C:\Users\YOU\AppData\Local\Packages\HoodedHorse.SuperFantasyKingdom_...\SystemAppData\wgs\...\</em><br>
+            There will be a subfolder per profile — drop files from all of them at once.</p>
           </div>
           <div class="step">
             <div class="step-num">2</div>
-            <p>Drop <strong>all the files</strong> from that folder above (6 files is normal — each save has a backup).</p>
+            <p>The tool groups files by profile automatically and shows what it found. Assign each detected profile to a <strong>PC save slot</strong> (1, 2, or 3).</p>
           </div>
           <div class="step">
             <div class="step-num">3</div>
-            <p>Click <strong>Convert & Download ZIP</strong>. The zip will contain the three renamed <em>.data</em> files.</p>
-          </div>
-          <div class="step">
-            <div class="step-num">4</div>
-            <p>Extract the zip into<br>
+            <p>Click <strong>Convert & Download Files</strong>. Each save file will download individually with the correct name. Move them into<br>
             <em>%USERPROFILE%\AppData\LocalLow\Super Fantasy Games\Super Fantasy Kingdom\</em><br>
-            (delete any existing <em>.bak</em> files first).</p>
+            Delete any existing <em>.bak</em> files in that folder first.</p>
           </div>
         </div>
       </div>
@@ -356,44 +198,142 @@
     </div>
   </div>
 
+  <div class="footer">All processing happens in your browser — no files are uploaded anywhere.</div>
 </div>
 
 <script>
-// ──────────────────────────────────────────────────────────────────────────
-// Classification logic (mirrors the Python script)
-// ──────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Classification
+// ═══════════════════════════════════════════════════════════════════
 const UNDEAD_RACE_EVENTS = new Set([11, 12, 41, 42, 43, 44, 45, 62, 160, 162, 201]);
-const UNDEAD_HEROES = new Set(["Cadus", "Selene", "Mort", "Thea", "Gideon"]);
-const HUMAN_HEROES  = new Set(["Alaric", "Sheva", "Rickard", "Grumdil", "Cole", "Qhela"]);
+const UNDEAD_HEROES = new Set(['Cadus', 'Selene', 'Mort', 'Thea', 'Gideon']);
+const HUMAN_HEROES  = new Set(['Alaric', 'Sheva', 'Rickard', 'Grumdil', 'Cole', 'Qhela']);
 
 function classifySave(data) {
-  if (data.identifier && data.totalKingdoms !== undefined) return "permanent";
-  if (data.Data && Object.keys(data).length === 1) return "skip";
+  // Permanent profile: has an identifier UUID and totalKingdoms
+  if (data.identifier && data.totalKingdoms !== undefined) return 'permanent';
+  // WelcomeMessage stub or unrecognised tiny file
+  if (!data.raceEvents && !data.hero) return 'skip';
 
+  // Primary signal: first entry of unitsPlayed is the starting hero,
+  // which is faction-locked — Rickard = human, Cadus = undead.
+  const firstUnit = (data.unitsPlayed || [])[0];
+  if (firstUnit === 'Rickard') return 'human_kingdom';
+  if (firstUnit === 'Cadus')   return 'undead_kingdom';
+
+  // Fallback: faction-exclusive raceEvents IDs
   const events = new Set(data.raceEvents || []);
-  for (const e of UNDEAD_RACE_EVENTS) { if (events.has(e)) return "undead_kingdom"; }
-  if (events.size > 0) return "human_kingdom";
+  for (const e of UNDEAD_RACE_EVENTS) { if (events.has(e)) return 'undead_kingdom'; }
+  if (events.size > 0) return 'human_kingdom';
 
-  const hero = data.hero || "";
-  if (UNDEAD_HEROES.has(hero)) return "undead_kingdom";
-  if (HUMAN_HEROES.has(hero))  return "human_kingdom";
-  return "unknown";
+  // Last resort: hero name heuristic
+  const hero = data.hero || '';
+  if (UNDEAD_HEROES.has(hero)) return 'undead_kingdom';
+  if (HUMAN_HEROES.has(hero))  return 'human_kingdom';
+  return 'skip';
 }
 
-// ──────────────────────────────────────────────────────────────────────────
-// State
-// ──────────────────────────────────────────────────────────────────────────
-let classifiedFiles = {}; // { permanent: File, human_kingdom: File, undead_kingdom: File }
+// ═══════════════════════════════════════════════════════════════════
+// Deduplication: data vs bak pairs have nearly identical JSON.
+// Fingerprint on (kind, totalRuns, totalDays, totalKills, hero) —
+// matches within a pair, differs wildly between profiles.
+// Keep the newer file (higher lastModified) per fingerprint.
+// ═══════════════════════════════════════════════════════════════════
+function fingerprint(data, kind) {
+  if (kind === 'permanent') {
+    return `perm:${data.identifier || ''}`;
+  }
+  return `${kind}:${data.totalRuns || 0}:${data.totalDays || 0}:${data.totalKills || 0}:${data.hero || ''}`;
+}
 
-// ──────────────────────────────────────────────────────────────────────────
+function deduplicateByFingerprint(parsedFiles) {
+  const map = new Map();
+  for (const pf of parsedFiles) {
+    const fp = fingerprint(pf.data, pf.kind);
+    if (!map.has(fp) || pf.mtime > map.get(fp).mtime) {
+      map.set(fp, pf);
+    }
+  }
+  return [...map.values()];
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Grouping: cluster deduplicated files into per-profile sets.
+//
+// Xbox stores each profile in its own save subfolder and writes all
+// of a profile's files close together in time. Files from different
+// profiles will have timestamps minutes or hours apart.
+//
+// We sort by mtime and split on gaps > GAP_MS.
+// Fallback: if the browser reports no mtime (all zeros), we put
+// everything in one group and let the user sort it out.
+// ═══════════════════════════════════════════════════════════════════
+const GAP_MS = 60_000; // 60 seconds between profile groups
+
+function groupIntoProfiles(uniqueFiles) {
+  const sorted = [...uniqueFiles].sort((a, b) => a.mtime - b.mtime);
+
+  // If all mtimes are zero the browser isn't giving us timestamps —
+  // fall back to a single group.
+  if (sorted.every(f => f.mtime === 0)) return [sorted];
+
+  const groups = [];
+  let current = [sorted[0]];
+
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = sorted[i].mtime - sorted[i - 1].mtime;
+    if (gap > GAP_MS) {
+      groups.push(current);
+      current = [];
+    }
+    current.push(sorted[i]);
+  }
+  if (current.length) groups.push(current);
+
+  return groups;
+}
+
+// Collapse a group's files into one-per-kind, newest wins.
+function resolveGroup(files) {
+  const result = {};
+  for (const pf of files) {
+    if (pf.kind === 'skip') continue;
+    if (!result[pf.kind] || pf.mtime > result[pf.kind].mtime) {
+      result[pf.kind] = pf;
+    }
+  }
+  return result;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Human-readable summary for a resolved profile group
+// ═══════════════════════════════════════════════════════════════════
+function profileSummary(resolved) {
+  const perm = resolved.permanent?.data;
+  if (perm) {
+    const runs  = perm.totalRuns  || 0;
+    const wins  = perm.totalWins  || 0;
+    const stars = perm.stars      || 0;
+    return `${runs} runs · ${wins} wins · ${stars} ★`;
+  }
+  const hk = resolved.human_kingdom?.data;
+  const uk = resolved.undead_kingdom?.data;
+  if (hk || uk) {
+    const runs = (hk?.totalRuns || 0) + (uk?.totalRuns || 0);
+    return `~${runs} combined runs`;
+  }
+  return 'Unknown stats';
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // UI helpers
-// ──────────────────────────────────────────────────────────────────────────
-const dropZone    = document.getElementById('drop-zone');
-const fileInput   = document.getElementById('file-input');
-const statusBox   = document.getElementById('status-box');
-const fileListEl  = document.getElementById('file-list');
-const fileItemsEl = document.getElementById('file-items');
-const convertBtn  = document.getElementById('convert-btn');
+// ═══════════════════════════════════════════════════════════════════
+const dropZone        = document.getElementById('drop-zone');
+const fileInput       = document.getElementById('file-input');
+const statusBox       = document.getElementById('status-box');
+const profilesSection = document.getElementById('profiles-section');
+const profileGroups   = document.getElementById('profile-groups');
+const convertBtn      = document.getElementById('convert-btn');
 
 function showStatus(msg, type = 'error') {
   statusBox.textContent = msg;
@@ -403,136 +343,187 @@ function showStatus(msg, type = 'error') {
 function hideStatus() { statusBox.style.display = 'none'; }
 
 function badgeFor(kind) {
-  const map = {
-    permanent:      ['profile',  '👑 Player Profile'],
+  return {
+    permanent:      ['profile', '👑 Player Profile'],
     human_kingdom:  ['human',   '⚔️ Human Kingdom'],
     undead_kingdom: ['undead',  '💀 Undead Kingdom'],
-    unknown:        ['unknown', '❓ Unknown'],
-    skip:           ['unknown', '⏭ Skipped'],
-  };
-  return map[kind] || map.unknown;
+  }[kind] || ['unknown', '❓ Unknown'];
 }
 
-function renderFileList(results) {
-  fileItemsEl.innerHTML = '';
-  for (const { file, kind } of results) {
-    if (kind === 'skip') continue;
-    const [cls, label] = badgeFor(kind);
-    const item = document.createElement('div');
-    item.className = 'file-item';
-    item.innerHTML = `
-      <span class="fi-name">${file.name}</span>
-      <span class="fi-badge ${cls}">${label}</span>
+function validateSlots() {
+  const selects = [...document.querySelectorAll('.slot-select')];
+  const counts  = selects.reduce((acc, s) => { acc[s.value] = (acc[s.value] || 0) + 1; return acc; }, {});
+  let conflict  = false;
+  selects.forEach(sel => {
+    const dup = counts[sel.value] > 1;
+    sel.closest('.profile-slot-row').querySelector('.slot-conflict').style.display = dup ? 'inline' : 'none';
+    if (dup) conflict = true;
+  });
+  convertBtn.disabled = conflict;
+}
+
+let detectedProfiles = [];
+
+function renderProfiles(profiles) {
+  profileGroups.innerHTML = '';
+
+  profiles.forEach(({ resolved }, idx) => {
+    const group = document.createElement('div');
+    group.className = 'profile-group';
+    const slotOptions = profiles.map((_, i) =>
+      `<option value="${i+1}" ${i===idx?'selected':''}>Slot ${i+1}</option>`
+    ).join('');
+
+    group.innerHTML = `
+      <div class="profile-group-header">
+        <span class="profile-group-title">Detected Profile ${idx + 1}</span>
+        <span class="profile-stats">${profileSummary(resolved)}</span>
+      </div>
+      <div class="profile-slot-row">
+        <label>Save as PC slot</label>
+        <select class="slot-select" data-idx="${idx}">${slotOptions}</select>
+        <span class="slot-conflict">⚠ Duplicate slot — each profile needs a unique slot</span>
+      </div>
+      <div class="profile-files"></div>
     `;
-    fileItemsEl.appendChild(item);
-  }
-  fileListEl.style.display = 'block';
+
+    const fileList = group.querySelector('.profile-files');
+    for (const kind of ['permanent', 'human_kingdom', 'undead_kingdom']) {
+      const pf = resolved[kind];
+      if (pf) {
+        const [cls, label] = badgeFor(kind);
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `<span class="fi-name">${pf.file.name}</span><span class="fi-badge ${cls}">${label}</span>`;
+        fileList.appendChild(item);
+      } else {
+        const miss = document.createElement('div');
+        miss.className = 'fi-missing';
+        miss.textContent = `⚠ Missing: ${kind.replace(/_/g, ' ')}`;
+        fileList.appendChild(miss);
+      }
+    }
+
+    profileGroups.appendChild(group);
+  });
+
+  document.querySelectorAll('.slot-select').forEach(sel => sel.addEventListener('change', validateSlots));
+  profilesSection.style.display = 'block';
+  convertBtn.style.display = 'block';
+  validateSlots();
 }
 
-// ──────────────────────────────────────────────────────────────────────────
-// Process files
-// ──────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Process uploaded files
+// ═══════════════════════════════════════════════════════════════════
 async function readJSON(file) {
-  return new Promise((resolve, reject) => {
+  return new Promise((res, rej) => {
     const r = new FileReader();
-    r.onload = e => {
-      try { resolve(JSON.parse(e.target.result)); }
-      catch { reject(new Error(`${file.name} is not valid JSON`)); }
-    };
-    r.onerror = () => reject(new Error(`Could not read ${file.name}`));
+    r.onload  = e => { try { res(JSON.parse(e.target.result)); } catch { rej(); } };
+    r.onerror = rej;
     r.readAsText(file);
   });
 }
 
 async function processFiles(files) {
   hideStatus();
-  fileListEl.style.display = 'none';
+  profilesSection.style.display = 'none';
   convertBtn.style.display = 'none';
-  classifiedFiles = {};
+  detectedProfiles = [];
 
   if (!files || files.length === 0) return;
 
-  const results = [];
-  const buckets = { permanent: [], human_kingdom: [], undead_kingdom: [] };
-
+  // 1. Parse + classify all files
+  const parsedFiles = [];
   for (const file of files) {
     let data;
-    try { data = await readJSON(file); }
-    catch { results.push({ file, kind: 'unknown' }); continue; }
-
+    try { data = await readJSON(file); } catch { continue; }
     const kind = classifySave(data);
-    results.push({ file, kind, mtime: file.lastModified });
-    if (buckets[kind]) buckets[kind].push({ file, mtime: file.lastModified });
+    if (kind === 'skip') continue;
+    parsedFiles.push({ file, data, kind, mtime: file.lastModified || 0 });
   }
 
-  renderFileList(results);
-
-  // Resolve duplicates by taking the newer file
-  const errors = [];
-  for (const kind of ['permanent', 'human_kingdom', 'undead_kingdom']) {
-    const candidates = buckets[kind];
-    if (candidates.length === 0) {
-      errors.push(`Could not find a ${kind.replace(/_/g,' ')} save.`);
-    } else if (candidates.length === 1) {
-      classifiedFiles[kind] = candidates[0].file;
-    } else if (candidates.length === 2) {
-      // Pick newer
-      classifiedFiles[kind] = candidates.sort((a,b) => b.mtime - a.mtime)[0].file;
-    } else {
-      errors.push(`Found ${candidates.length} candidates for ${kind.replace(/_/g,' ')} — too many to resolve. Please remove extra files.`);
-    }
-  }
-
-  if (errors.length > 0) {
-    showStatus('⚠ ' + errors.join('\n⚠ '), 'error');
+  if (parsedFiles.length === 0) {
+    showStatus('No recognisable save files found.\nMake sure you\'re dropping the raw Xbox save files (no extension, containing JSON).', 'error');
     return;
   }
 
-  showStatus('✓ All three save files identified. Ready to convert!', 'success');
-  convertBtn.style.display = 'block';
+  // 2. Deduplicate data/bak pairs — keep the newer file per unique fingerprint
+  const uniqueFiles = deduplicateByFingerprint(parsedFiles);
+
+  // 3. Cluster into profiles by mtime gap
+  const groups = groupIntoProfiles(uniqueFiles);
+
+
+
+  // 4. Resolve each group into { permanent?, human_kingdom?, undead_kingdom? }
+  const warnings = [];
+  detectedProfiles = groups.map((group, i) => {
+    const resolved = resolveGroup(group);
+    const missing  = ['permanent', 'human_kingdom', 'undead_kingdom'].filter(k => !resolved[k]);
+    if (missing.length) {
+      warnings.push(`Profile ${i + 1}: could not find ${missing.map(m => m.replace(/_/g, ' ')).join(', ')}.`);
+    }
+    return { resolved };
+  });
+
+  if (warnings.length) {
+    showStatus('⚠ Some files could not be identified:\n' + warnings.join('\n') + '\n\nYou can still convert the files that were found.', 'warning');
+  }
+
+  renderProfiles(detectedProfiles);
 }
 
-// ──────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
 // Convert & download
-// ──────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
 convertBtn.addEventListener('click', async () => {
-  const profile = document.getElementById('profile-select').value;
+  const slots = [...document.querySelectorAll('.slot-select')].map(s => s.value);
   convertBtn.disabled = true;
-  convertBtn.textContent = '⏳  Building zip…';
+  convertBtn.textContent = '⏳  Downloading…';
+  hideStatus();
 
   try {
-    const zip = new JSZip();
-    const nameMap = {
-      permanent:      `${profile}_permanent.data`,
-      human_kingdom:  `${profile}_human_kingdom.data`,
-      undead_kingdom: `${profile}_undead_kingdom.data`,
-    };
+    let fileCount = 0;
 
-    for (const [kind, file] of Object.entries(classifiedFiles)) {
-      const content = await file.arrayBuffer();
-      zip.file(nameMap[kind], content);
+    for (let i = 0; i < detectedProfiles.length; i++) {
+      const slot = slots[i];
+      const { resolved } = detectedProfiles[i];
+      for (const [kind, pf] of Object.entries(resolved)) {
+        if (!pf) continue;
+        const filename = `${slot}_${kind}.data`;
+        const blob = new Blob([await pf.file.arrayBuffer()], { type: 'application/octet-stream' });
+        const a = Object.assign(document.createElement('a'), {
+          href: URL.createObjectURL(blob),
+          download: filename,
+        });
+        a.click();
+        URL.revokeObjectURL(a.href);
+        // Small delay so the browser doesn't block rapid-fire downloads
+        await new Promise(r => setTimeout(r, 200));
+        fileCount++;
+      }
     }
 
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url;
-    a.download = `sfk_pc_saves_profile${profile}.zip`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!fileCount) { showStatus('Nothing to convert.', 'error'); return; }
 
-    showStatus(`✓ Downloaded sfk_pc_saves_profile${profile}.zip — extract it into your Steam save folder.`, 'success');
+    showStatus(
+      `✓ Downloaded ${fileCount} file${fileCount !== 1 ? 's' : ''}.\n` +
+      `Move them into your Steam save folder and delete any existing .bak files first.`,
+      'success'
+    );
   } catch (err) {
-    showStatus('Error building zip: ' + err.message, 'error');
+    showStatus('Error downloading files: ' + err.message, 'error');
   } finally {
     convertBtn.disabled = false;
-    convertBtn.innerHTML = '⚔️ &nbsp; Convert &amp; Download ZIP';
+    convertBtn.innerHTML = '⚔️ &nbsp; Convert &amp; Download Files';
+    validateSlots();
   }
 });
 
-// ──────────────────────────────────────────────────────────────────────────
-// Drag & drop + file input wiring
-// ──────────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// Drag & drop + file input
+// ═══════════════════════════════════════════════════════════════════
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragover'));
 dropZone.addEventListener('drop', e => {
