@@ -62,6 +62,30 @@
   .card-header h2 { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--sepia-light); letter-spacing: 0.15em; text-transform: uppercase; }
   .card-body { padding: 28px; }
 
+  /* ── Profile Count Selector ── */
+  .profile-count-row {
+    display: flex; align-items: center; gap: 0; margin-bottom: 24px;
+    border: 1px solid var(--sepia-light); border-radius: 3px; overflow: hidden;
+  }
+  .profile-count-label {
+    font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--sepia);
+    letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 14px;
+    background: rgba(122,92,46,0.1); border-right: 1px solid var(--sepia-light);
+    white-space: nowrap;
+  }
+  .profile-count-btn {
+    flex: 1; padding: 10px 6px; background: transparent; border: none;
+    font-family: 'Cinzel', serif; font-size: 0.85rem; color: #8a6a30;
+    cursor: pointer; transition: all 0.15s ease; text-align: center;
+    border-right: 1px solid rgba(122,92,46,0.2);
+  }
+  .profile-count-btn:last-child { border-right: none; }
+  .profile-count-btn:hover { background: rgba(122,92,46,0.1); color: var(--sepia); }
+  .profile-count-btn.active {
+    background: linear-gradient(135deg, #2a1f0e, #4a3218);
+    color: var(--sepia-light); font-weight: 700;
+  }
+
   /* ── Drop Zone ── */
   .drop-zone {
     border: 2px dashed var(--sepia-light); border-radius: 3px;
@@ -156,11 +180,18 @@
     </div>
     <div class="card-body">
 
+      <div class="profile-count-row">
+        <span class="profile-count-label">Profiles to transfer</span>
+        <button class="profile-count-btn active" data-count="1">1</button>
+        <button class="profile-count-btn" data-count="2">2</button>
+        <button class="profile-count-btn" data-count="3">3</button>
+      </div>
+
       <div class="drop-zone" id="drop-zone">
         <input type="file" id="file-input" multiple>
         <span class="drop-icon">🗂️</span>
         <h3>Drop Xbox save files here</h3>
-        <p>Drop all files from your Xbox save folder(s) at once — multiple profiles supported.<br>
+        <p>Drop all files from your Xbox save folder(s) at once.<br>
         Files have hex names like <em>3AAE4E034CDC43D4AE2C4DEF8DA7BF80</em> with no extension.</p>
       </div>
 
@@ -174,23 +205,23 @@
       <button id="convert-btn">⚔️ &nbsp; Convert &amp; Download Files</button>
 
       <div class="how-it-works">
-        <div class="how-title">How to use</div>
+        <div class="how-title">Before you start — important prep step</div>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
-            <p>Find your Xbox saves at<br>
-            <em>C:\Users\YOU\AppData\Local\Packages\HoodedHorse.SuperFantasyKingdom_...\SystemAppData\wgs\...\</em><br>
-            There will be a subfolder per profile — drop files from all of them at once.</p>
+            <p><strong>On Xbox, for each profile you want to transfer:</strong> load the profile, start a run on the <strong>Human Kingdom</strong>, then immediately give up. Do the same for the <strong>Undead Kingdom</strong>. This ensures both saves are freshly written and easy to identify.</p>
           </div>
           <div class="step">
             <div class="step-num">2</div>
-            <p>The tool groups files by profile automatically and shows what it found. Assign each detected profile to a <strong>PC save slot</strong> (1, 2, or 3).</p>
+            <p>Find your Xbox saves at<br>
+            <em>C:\Users\YOU\AppData\Local\Packages\HoodedHorse.SuperFantasyKingdom_...\SystemAppData\wgs\...\</em><br>
+            Select how many profiles you're transferring above, then drop all the files here at once.</p>
           </div>
           <div class="step">
             <div class="step-num">3</div>
-            <p>Click <strong>Convert & Download Files</strong>. Each save file will download individually with the correct name. Move them into<br>
+            <p>Assign each detected profile to a <strong>PC save slot</strong>, then click <strong>Convert & Download Files</strong>. Each file downloads with the correct name — move them into<br>
             <em>%USERPROFILE%\AppData\LocalLow\Super Fantasy Games\Super Fantasy Kingdom\</em><br>
-            Delete any existing <em>.bak</em> files in that folder first.</p>
+            and delete any existing <em>.bak</em> files in that folder first.</p>
           </div>
         </div>
       </div>
@@ -202,6 +233,23 @@
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════
+// Profile count selector
+// ═══════════════════════════════════════════════════════════════════
+let expectedProfileCount = 1;
+
+document.querySelectorAll('.profile-count-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.profile-count-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    expectedProfileCount = parseInt(btn.dataset.count);
+    // Re-process if files already loaded
+    if (detectedProfiles.length > 0) processFiles(lastFiles);
+  });
+});
+
+let lastFiles = null;
+
 // ═══════════════════════════════════════════════════════════════════
 // Classification
 // ═══════════════════════════════════════════════════════════════════
@@ -237,7 +285,10 @@ function classifySave(data) {
 // Deduplication: data vs bak pairs have nearly identical JSON.
 // Fingerprint on (kind, totalRuns, totalDays, totalKills, hero) —
 // matches within a pair, differs wildly between profiles.
-// Keep the newer file (higher lastModified) per fingerprint.
+//
+// We pick the further-progressed file by summing cumulative counters
+// that only ever increase (starts, runs, experience, days, crowns).
+// On a tie we fall back to mtime as a tiebreaker.
 // ═══════════════════════════════════════════════════════════════════
 function fingerprint(data, kind) {
   if (kind === 'permanent') {
@@ -246,47 +297,74 @@ function fingerprint(data, kind) {
   return `${kind}:${data.totalRuns || 0}:${data.totalDays || 0}:${data.totalKills || 0}:${data.hero || ''}`;
 }
 
+function progressionScore(data, kind) {
+  if (kind === 'permanent') {
+    return (data.totalRuns || 0) + (data.totalWins || 0) + (data.stars || 0);
+  }
+  return (
+    (data.totalStarts || 0) +
+    (data.totalRuns   || 0) +
+    (data.experience  || 0) +
+    (data.totalDays   || 0) +
+    (data.crowns      || 0)
+  );
+}
+
 function deduplicateByFingerprint(parsedFiles) {
   const map = new Map();
   for (const pf of parsedFiles) {
     const fp = fingerprint(pf.data, pf.kind);
-    if (!map.has(fp) || pf.mtime > map.get(fp).mtime) {
+    if (!map.has(fp)) {
       map.set(fp, pf);
+    } else {
+      const existing = map.get(fp);
+      const scoreNew = progressionScore(pf.data, pf.kind);
+      const scoreOld = progressionScore(existing.data, existing.kind);
+      // Keep whichever is further progressed; mtime breaks ties
+      if (scoreNew > scoreOld || (scoreNew === scoreOld && pf.mtime > existing.mtime)) {
+        map.set(fp, pf);
+      }
     }
   }
   return [...map.values()];
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Grouping: cluster deduplicated files into per-profile sets.
+// Grouping: cluster deduplicated files into exactly N profile groups.
 //
-// Xbox stores each profile in its own save subfolder and writes all
-// of a profile's files close together in time. Files from different
-// profiles will have timestamps minutes or hours apart.
+// The user tells us N (expectedProfileCount). We sort by mtime and
+// split on the N-1 largest gaps — so 1 profile always = 1 group
+// regardless of how spread out the permanent file's timestamp is
+// relative to the kingdom files (a common Xbox quirk).
 //
-// We sort by mtime and split on gaps > GAP_MS.
-// Fallback: if the browser reports no mtime (all zeros), we put
-// everything in one group and let the user sort it out.
+// Fallback: if all mtimes are 0 (browser withholds timestamps) and
+// N > 1, we can't split — return one group and let the mismatch
+// error guide the user to try the prep step.
 // ═══════════════════════════════════════════════════════════════════
-const GAP_MS = 60_000; // 60 seconds between profile groups
-
-function groupIntoProfiles(uniqueFiles) {
+function groupIntoProfiles(uniqueFiles, n) {
   const sorted = [...uniqueFiles].sort((a, b) => a.mtime - b.mtime);
 
-  // If all mtimes are zero the browser isn't giving us timestamps —
-  // fall back to a single group.
-  if (sorted.every(f => f.mtime === 0)) return [sorted];
+  // Only one group needed, or timestamps unavailable — return everything together.
+  if (n <= 1 || sorted.every(f => f.mtime === 0)) return [sorted];
+
+  // Compute gaps between consecutive files.
+  const gaps = [];
+  for (let i = 1; i < sorted.length; i++) {
+    gaps.push({ gap: sorted[i].mtime - sorted[i - 1].mtime, after: i - 1 });
+  }
+
+  // Split at the N-1 largest gaps.
+  const splitAfter = new Set(
+    gaps.sort((a, b) => b.gap - a.gap)
+        .slice(0, n - 1)
+        .map(g => g.after)
+  );
 
   const groups = [];
-  let current = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    const gap = sorted[i].mtime - sorted[i - 1].mtime;
-    if (gap > GAP_MS) {
-      groups.push(current);
-      current = [];
-    }
+  let current = [];
+  for (let i = 0; i < sorted.length; i++) {
     current.push(sorted[i]);
+    if (splitAfter.has(i)) { groups.push(current); current = []; }
   }
   if (current.length) groups.push(current);
 
@@ -432,6 +510,7 @@ async function processFiles(files) {
   detectedProfiles = [];
 
   if (!files || files.length === 0) return;
+  lastFiles = files;
 
   // 1. Parse + classify all files
   const parsedFiles = [];
@@ -452,11 +531,22 @@ async function processFiles(files) {
   const uniqueFiles = deduplicateByFingerprint(parsedFiles);
 
   // 3. Cluster into profiles by mtime gap
-  const groups = groupIntoProfiles(uniqueFiles);
+  const groups = groupIntoProfiles(uniqueFiles, expectedProfileCount);
 
+  // 4. Validate group count matches what the user told us to expect
+  if (groups.length !== expectedProfileCount) {
+    const more = groups.length > expectedProfileCount;
+    showStatus(
+      `Expected ${expectedProfileCount} profile${expectedProfileCount !== 1 ? 's' : ''} but detected ${groups.length}.\n\n` +
+      (more
+        ? `Too many groups found — files from different sessions may have been mixed together. Make sure you only drop files from the ${expectedProfileCount} profile folder${expectedProfileCount !== 1 ? 's' : ''} you want to transfer. If the problem persists, try the prep step: start and immediately give up a run on each kingdom before exporting.`
+        : `Not enough groups found — some profile files may be missing, or multiple profiles were saved so close together that they couldn't be separated. Try the prep step: on Xbox, start and immediately give up a run on each kingdom for each profile, then re-export and drop the files again.`),
+      'error'
+    );
+    return;
+  }
 
-
-  // 4. Resolve each group into { permanent?, human_kingdom?, undead_kingdom? }
+  // 5. Resolve each group into { permanent?, human_kingdom?, undead_kingdom? }
   const warnings = [];
   detectedProfiles = groups.map((group, i) => {
     const resolved = resolveGroup(group);
@@ -529,9 +619,13 @@ dropZone.addEventListener('dragleave', ()  => dropZone.classList.remove('dragove
 dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.classList.remove('dragover');
-  processFiles(e.dataTransfer.files);
+  lastFiles = e.dataTransfer.files;
+  processFiles(lastFiles);
 });
-fileInput.addEventListener('change', e => processFiles(e.target.files));
+fileInput.addEventListener('change', e => {
+  lastFiles = e.target.files;
+  processFiles(lastFiles);
+});
 </script>
 </body>
 </html>
